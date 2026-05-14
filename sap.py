@@ -11,14 +11,14 @@ from streamlit.web import cli as stcli
 # ==========================================
 # 1. DATA ENGINE & COLOR CONFIG
 # ==========================================
+# IMPROVEMENT 1: Super Vibrant / Neon Color Palette
 COLOR_MAP = {
-    'Crossword': '#00e5ff', 'Bingo': '#df20df', 'Spin the Wheel': '#f1c40f',
-    'Race 6': '#10d25f', 'Spin Roulette': '#38b284', 'Crossword Paradise': '#f06277',
-    'Terdrup': '#8b5cf6', 'Pick 3': '#3b82f6', 'Lotto': '#a855f7',
-    'Pick 4': '#f97316', 'Free Roll': '#0ea5e9'
+    'Crossword': '#00F0FF', 'Bingo': '#FF00AA', 'Spin the Wheel': '#FFE600',
+    'Race 6': '#00FF66', 'Spin Roulette': '#00E676', 'Crossword Paradise': '#FF3366',
+    'Terdrup': '#B366FF', 'Pick 3': '#3399FF', 'Lotto': '#CC33FF',
+    'Pick 4': '#FF6600', 'Free Roll': '#00CCFF'
 }
 
-# IMPROVEMENT: Brighter fonts, larger base size, and cleaner grid lines
 DARK_TEMPLATE = dict(
     template="plotly_dark",
     paper_bgcolor='rgba(0,0,0,0)',
@@ -108,15 +108,12 @@ def get_product_stats(df, product_cols):
 # 3. MAIN DASHBOARD
 # ==========================================
 def main():
-    st.set_page_config(page_title="AI Sales Dashboard", layout="wide", page_icon="chart_with_upwards_trend")
+    st.set_page_config(page_title="AI Sales Dashboard", layout="wide", page_icon="📈")
 
-    # ---- Custom CSS ----
     st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&display=swap');
-
     html, body, [class*="css"] { font-family: 'Sora', sans-serif; }
-
     .metric-card {
         background: linear-gradient(135deg, #0d1b2a 0%, #1a2744 100%);
         border: 1px solid rgba(255,255,255,0.15);
@@ -130,7 +127,6 @@ def main():
     .metric-card .delta-pos { font-size: 13px; font-weight: 600; color: #10b981; margin-top: 2px; }
     .metric-card .delta-neg { font-size: 13px; font-weight: 600; color: #ef4444; margin-top: 2px; }
     .metric-card .delta-neu { font-size: 13px; font-weight: 600; color: #94a3b8; margin-top: 2px; }
-
     .product-scorecard {
         background: linear-gradient(135deg, #0d1b2a 0%, #1a2744 100%);
         border-radius: 12px;
@@ -146,21 +142,10 @@ def main():
     .scorecard-sub   { font-size: 12px; color: #94a3b8; margin-top: 2px; }
     .scorecard-share { font-size: 13px; font-weight: 600; color: #cbd5e1; margin-top: 4px; }
     .rank-badge      { display:inline-block; background: rgba(255,255,255,0.15); border-radius:6px; padding: 2px 8px; font-size:11px; color:#ffffff; margin-right:6px; font-weight: bold;}
-
     .section-header {
         font-size: 22px; font-weight: 700; color: #ffffff;
         margin: 24px 0 16px 0; padding-bottom: 8px;
         border-bottom: 1px solid rgba(255,255,255,0.15);
-    }
-
-    div[data-testid="stTabs"] button {
-        font-family: 'Sora', sans-serif !important;
-        font-size: 14px !important;
-        font-weight: 600 !important;
-        color: #cbd5e1 !important;
-    }
-    div[data-testid="stTabs"] button[aria-selected="true"] {
-        color: #ffffff !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -171,44 +156,22 @@ def main():
         st.error("Data file not found. Please ensure 'Online sales1.csv' is available.")
         return
 
-    # ==========================================
-    # SIDEBAR — GLOBAL FILTERS
-    # ==========================================
     with st.sidebar:
         st.markdown("### Filters")
         min_date = df['Date'].min().date()
         max_date = df['Date'].max().date()
-        date_range = st.date_input(
-            "Date Range",
-            value=(min_date, max_date),
-            min_value=min_date,
-            max_value=max_date
-        )
+        date_range = st.date_input("Date Range", value=(min_date, max_date), min_value=min_date, max_value=max_date)
         if len(date_range) == 2:
             start_date, end_date = date_range
             df = df[(df['Date'].dt.date >= start_date) & (df['Date'].dt.date <= end_date)]
 
-        selected_products = st.multiselect(
-            "Focus Products",
-            options=product_cols,
-            default=product_cols,
-            help="Select products to include in all charts"
-        )
+        selected_products = st.multiselect("Focus Products", options=product_cols, default=product_cols)
         if not selected_products:
             selected_products = product_cols
-
-        st.markdown("---")
-        st.markdown("### Quick Stats")
-        st.caption(f"Date range: {df['Date'].min().date()} to {df['Date'].max().date()}")
-        st.caption(f"Total days: {df['Date'].nunique()}")
-        st.caption(f"Products tracked: {len(selected_products)}")
 
     df_filtered = df.copy()
     active_cols  = [p for p in product_cols if p in selected_products]
 
-    # ==========================================
-    # HEADER
-    # ==========================================
     st.markdown("""
     <div style='padding: 10px 0 20px 0;'>
         <div style='font-size:32px; font-weight:700; color:#ffffff; letter-spacing:-0.5px;'>
@@ -220,9 +183,6 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
-    # ==========================================
-    # TOP KPI ROW
-    # ==========================================
     mom_growth, mom_labels = compute_mom_growth(df_filtered, active_cols)
     total_rev    = df_filtered[active_cols].sum().sum()
     best_product = df_filtered[active_cols].sum().idxmax()
@@ -230,16 +190,6 @@ def main():
     avg_daily    = df_filtered['Total Sales'].mean()
     active_days  = df_filtered['Date'].nunique()
     total_mom    = mom_growth['Total Sales'] if mom_growth else 0
-
-    def delta_class(val):
-        if val > 0: return "delta-pos"
-        if val < 0: return "delta-neg"
-        return "delta-neu"
-
-    def delta_arrow(val):
-        if val > 0: return "&#8593;"
-        if val < 0: return "&#8595;"
-        return "-"
 
     c1, c2, c3, c4, c5 = st.columns(5)
     kpi_data = [
@@ -250,32 +200,12 @@ def main():
         (c5, "Products Tracked", str(len(active_cols)),     None,      f"{active_cols[0]} leading"),
     ]
     for col, label, value, delta, sub in kpi_data:
-        if delta is not None:
-            dc    = delta_class(delta)
-            arrow = delta_arrow(delta)
-            delta_html = f'<div class="{dc}">{arrow} {growth_badge(delta)} {sub}</div>'
-        else:
-            delta_html = f'<div class="delta-neu">{sub}</div>'
-        col.markdown(f"""
-        <div class="metric-card">
-            <div class="label">{label}</div>
-            <div class="value">{value}</div>
-            {delta_html}
-        </div>
-        """, unsafe_allow_html=True)
+        delta_html = f'<div class="delta-{"pos" if delta and delta>0 else ("neg" if delta and delta<0 else "neu")}">{("&#8593;" if delta and delta>0 else "&#8595;") if delta else "-"} {growth_badge(delta) if delta else ""} {sub}</div>'
+        col.markdown(f'<div class="metric-card"><div class="label">{label}</div><div class="value">{value}</div>{delta_html}</div>', unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # ==========================================
-    # TABS
-    # ==========================================
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-        "All Products Performance",
-        "Performance Overview",
-        "Trends & Time Analysis",
-        "Market Intelligence",
-        "AI Search & Analyze",
-        "Raw Data"
+        "All Products Performance", "Performance Overview", "Trends & Time Analysis",
+        "Market Intelligence", "AI Search & Analyze", "Raw Data"
     ])
 
     # ==========================================
@@ -283,7 +213,6 @@ def main():
     # ==========================================
     with tab1:
         st.markdown('<div class="section-header">Individual Product Scorecards</div>', unsafe_allow_html=True)
-
         stats_df = get_product_stats(df_filtered, active_cols)
 
         rows = [active_cols[i:i+3] for i in range(0, len(active_cols), 3)]
@@ -294,43 +223,35 @@ def main():
                 rank_val = stats_df.index[stats_df['Product'] == product].tolist()[0] + 1
                 color    = COLOR_MAP[product]
                 mom_val  = mom_growth[product] if mom_growth and product in mom_growth else 0
-                mom_str  = growth_badge(mom_val)
-                mom_color= "#10b981" if mom_val >= 0 else "#ef4444"
-
+                
                 with cols_row[idx]:
                     st.markdown(f"""
                     <div class="product-scorecard" style="--accent: {color};">
-                        <div class="scorecard-name">
-                            <span class="rank-badge">#{rank_val}</span>{product}
-                        </div>
+                        <div class="scorecard-name"><span class="rank-badge">#{rank_val}</span>{product}</div>
                         <div class="scorecard-total">${p_stats['Total Revenue']:,.0f}</div>
                         <div class="scorecard-sub">Avg/Day: ${p_stats['Avg Daily']:,.0f}</div>
                         <div class="scorecard-sub">Peak: ${p_stats['Peak Day']:,.0f} on {p_stats['Peak Date']}</div>
-                        <div class="scorecard-share">
-                            Market Share: {p_stats['Market Share %']:.1f}%
-                            &nbsp;|&nbsp;
-                            <span style='color:{mom_color};'>MoM {mom_str}</span>
-                        </div>
+                        <div class="scorecard-share">Market Share: {p_stats['Market Share %']:.1f}% &nbsp;|&nbsp; <span style='color:{"#10b981" if mom_val >= 0 else "#ef4444"};'>MoM {growth_badge(mom_val)}</span></div>
                     </div>
                     """, unsafe_allow_html=True)
 
-        # Revenue Ranking & Market Share
         st.markdown('<div class="section-header">Revenue Ranking & Market Share</div>', unsafe_allow_html=True)
         col_rank, col_pie = st.columns([3, 2])
 
         with col_rank:
             totals = df_filtered[active_cols].sum().sort_values(ascending=True).reset_index()
             totals.columns = ['Product', 'Sales']
+            # IMPROVEMENT 2: Add bright outlines to bars for contrast
             fig_rank = go.Figure(go.Bar(
                 x=totals['Sales'], y=totals['Product'], orientation='h',
-                marker=dict(color=[COLOR_MAP.get(p) for p in totals['Product']], opacity=0.9, line=dict(width=0)),
+                marker=dict(color=[COLOR_MAP.get(p) for p in totals['Product']], line=dict(color='white', width=1.5)),
                 text=totals['Sales'], texttemplate='$%{text:,.0f}', textposition='outside',
-                textfont=dict(size=13, weight='bold', color='white') # Improved Text Visibility
+                textfont=dict(size=14, weight='bold', color='white')
             ))
             fig_rank.update_layout(
-                title="Total Revenue Ranking", **DARK_TEMPLATE, height=420,
-                xaxis=dict(showgrid=False, showticklabels=False),
-                yaxis=dict(showgrid=False, tickfont=dict(size=13, weight='bold')),
+                title=dict(text="Total Revenue Ranking", font=dict(size=18, color='white')), 
+                **DARK_TEMPLATE, height=420,
+                xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'), yaxis=dict(tickfont=dict(size=13, weight='bold')),
                 margin=dict(l=10, r=100, t=40, b=10)
             )
             st.plotly_chart(fig_rank, use_container_width=True)
@@ -338,45 +259,38 @@ def main():
         with col_pie:
             pie_data = df_filtered[active_cols].sum().reset_index()
             pie_data.columns = ['Product', 'Sales']
-            fig_pie = px.pie(
-                pie_data, names='Product', values='Sales',
-                color='Product', color_discrete_map=COLOR_MAP,
-                hole=0.5, title="Revenue Market Share"
-            )
+            # IMPROVEMENT 3: Add explosive pull and white outlines to the pie chart
+            fig_pie = go.Figure(data=[go.Pie(
+                labels=pie_data['Product'], values=pie_data['Sales'], hole=0.4,
+                marker=dict(colors=[COLOR_MAP.get(p) for p in pie_data['Product']], line=dict(color='#000000', width=2)),
+                pull=[0.05] * len(pie_data) # Gives the pie an separated, cool look
+            )])
             fig_pie.update_traces(textposition='inside', textinfo='percent+label', textfont_size=13, textfont_color='white')
-            fig_pie.update_layout(**DARK_TEMPLATE, height=420, showlegend=False, margin=dict(l=10, r=10, t=40, b=10))
+            fig_pie.update_layout(title=dict(text="Revenue Market Share", font=dict(size=18, color='white')), **DARK_TEMPLATE, height=420, showlegend=False)
             st.plotly_chart(fig_pie, use_container_width=True)
 
-        # Deep-Dive: Individual Product Daily Performance
         st.markdown('<div class="section-header">Individual Product Deep Dive</div>', unsafe_allow_html=True)
         selected_deep = st.selectbox("Select a product to deep dive", options=active_cols)
-
         if selected_deep:
             deep_df = df_filtered[['Date', selected_deep]].copy()
             deep_df['7DMA'] = deep_df[selected_deep].rolling(7).mean()
             deep_df['30DMA'] = deep_df[selected_deep].rolling(30).mean()
-            p_color = COLOR_MAP[selected_deep]
 
             fig_deep = go.Figure()
+            # IMPROVEMENT 4: Add beautiful splines (curved lines) and outlines
             fig_deep.add_trace(go.Bar(
-                x=deep_df['Date'], y=deep_df[selected_deep],
-                name='Daily Revenue', marker_color=p_color, opacity=0.7
+                x=deep_df['Date'], y=deep_df[selected_deep], name='Daily Revenue', 
+                marker_color=COLOR_MAP[selected_deep], marker_line=dict(color='white', width=0.5), opacity=0.8
             ))
             fig_deep.add_trace(go.Scatter(
-                x=deep_df['Date'], y=deep_df['7DMA'],
-                name='7-Day MA', line=dict(color='#f1c40f', width=3)
-            ))
-            fig_deep.add_trace(go.Scatter(
-                x=deep_df['Date'], y=deep_df['30DMA'],
-                name='30-Day MA', line=dict(color='#ef4444', width=3, dash='dot')
+                x=deep_df['Date'], y=deep_df['7DMA'], name='7-Day MA', 
+                line=dict(color='#ffffff', width=3, shape='spline')
             ))
             fig_deep.update_layout(
-                title=f"{selected_deep} — Daily Revenue + Moving Averages",
-                **DARK_TEMPLATE, height=380,
-                xaxis=dict(showgrid=False),
-                yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'),
-                legend=dict(orientation='h', y=1.08),
-                margin=dict(l=10, r=10, t=60, b=10)
+                title=dict(text=f"{selected_deep} — Daily Revenue + Moving Averages", font=dict(size=18, color='white')),
+                **DARK_TEMPLATE, height=400, hovermode="x unified", # IMPROVEMENT 5: Unified Hover
+                xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'),
+                legend=dict(orientation='h', y=1.1)
             )
             st.plotly_chart(fig_deep, use_container_width=True)
 
@@ -385,51 +299,38 @@ def main():
     # ==========================================
     with tab2:
         st.markdown('<div class="section-header">Overall Performance Snapshot</div>', unsafe_allow_html=True)
-
         fig_area = go.Figure()
         for p in active_cols:
             fig_area.add_trace(go.Scatter(
-                x=df_filtered['Date'], y=df_filtered[p],
-                name=p, stackgroup='one',
-                line=dict(width=1, color=COLOR_MAP[p]),
-                fillcolor=COLOR_MAP[p],
-                opacity=0.85
+                x=df_filtered['Date'], y=df_filtered[p], name=p, stackgroup='one',
+                line=dict(width=2, color=COLOR_MAP[p], shape='spline'), # Added splines to area chart
+                fillcolor=COLOR_MAP[p], opacity=0.9
             ))
         fig_area.update_layout(
-            title="Cumulative Daily Revenue — All Products (Stacked)",
-            **DARK_TEMPLATE, height=400,
-            xaxis=dict(showgrid=False),
-            yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'),
-            legend=dict(orientation='h', y=-0.15),
-            margin=dict(l=10, r=10, t=40, b=60)
+            title=dict(text="Cumulative Daily Revenue (Stacked Area)", font=dict(size=18, color='white')),
+            **DARK_TEMPLATE, height=450, hovermode="x unified",
+            xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'),
+            legend=dict(orientation='h', y=-0.15)
         )
         st.plotly_chart(fig_area, use_container_width=True)
 
         col_bar, col_tbl = st.columns([2, 1])
         with col_bar:
-            month_order = ['January','February','March','April','May','June',
-                           'July','August','September','October','November','December']
             monthly = df_filtered.groupby('Month')[active_cols].sum().reset_index()
-            monthly['SortKey'] = monthly['Month'].apply(
-                lambda x: month_order.index(x) if x in month_order else 99
-            )
-            monthly = monthly.sort_values('SortKey').drop(columns='SortKey')
             melted  = monthly.melt(id_vars='Month', var_name='Product', value_name='Sales')
             fig_monthly = px.bar(
-                melted, x='Month', y='Sales', color='Product',
-                barmode='group', title="Monthly Revenue per Product",
-                color_discrete_map=COLOR_MAP
+                melted, x='Month', y='Sales', color='Product', barmode='group', 
+                title="Monthly Revenue per Product", color_discrete_map=COLOR_MAP
             )
-            fig_monthly.update_layout(**DARK_TEMPLATE, height=380, legend=dict(orientation='h', y=-0.2),
-                                      margin=dict(l=10, r=10, t=40, b=80))
+            fig_monthly.update_traces(marker_line=dict(color='white', width=1))
+            fig_monthly.update_layout(**DARK_TEMPLATE, height=380, hovermode="x unified", legend=dict(orientation='h', y=-0.2))
             st.plotly_chart(fig_monthly, use_container_width=True)
-
         with col_tbl:
             st.markdown("**Product Revenue Summary**")
             summary_tbl = stats_df[['Product','Total Revenue','Market Share %','Avg Daily']].copy()
-            summary_tbl['Total Revenue']   = summary_tbl['Total Revenue'].apply(lambda x: f"${x:,.0f}")
-            summary_tbl['Market Share %']  = summary_tbl['Market Share %'].apply(lambda x: f"{x:.1f}%")
-            summary_tbl['Avg Daily']        = summary_tbl['Avg Daily'].apply(lambda x: f"${x:,.0f}")
+            summary_tbl['Total Revenue'] = summary_tbl['Total Revenue'].apply(lambda x: f"${x:,.0f}")
+            summary_tbl['Market Share %'] = summary_tbl['Market Share %'].apply(lambda x: f"{x:.1f}%")
+            summary_tbl['Avg Daily'] = summary_tbl['Avg Daily'].apply(lambda x: f"${x:,.0f}")
             st.dataframe(summary_tbl, use_container_width=True, hide_index=True)
 
     # ==========================================
@@ -437,33 +338,20 @@ def main():
     # ==========================================
     with tab3:
         st.markdown('<div class="section-header">Trends & Time-Series Analysis</div>', unsafe_allow_html=True)
-
         t_col1, t_col2 = st.columns(2)
 
         with t_col1:
             df_filtered['7DMA_Total']  = df_filtered['Total Sales'].rolling(7).mean()
-            df_filtered['30DMA_Total'] = df_filtered['Total Sales'].rolling(30).mean()
-
             fig_trend = go.Figure()
             fig_trend.add_trace(go.Scatter(
-                x=df_filtered['Date'], y=df_filtered['Total Sales'],
-                name='Daily Total', mode='lines',
-                line=dict(color='rgba(255,255,255,0.4)', width=1)
+                x=df_filtered['Date'], y=df_filtered['Total Sales'], name='Daily Total', 
+                mode='lines+markers', marker=dict(size=4), line=dict(color='rgba(255,255,255,0.3)', width=1)
             ))
             fig_trend.add_trace(go.Scatter(
-                x=df_filtered['Date'], y=df_filtered['7DMA_Total'],
-                name='7-Day MA', line=dict(color='#00e5ff', width=3)
+                x=df_filtered['Date'], y=df_filtered['7DMA_Total'], name='7-Day MA', 
+                line=dict(color='#00FF66', width=4, shape='spline') # Thick neon trend line
             ))
-            fig_trend.add_trace(go.Scatter(
-                x=df_filtered['Date'], y=df_filtered['30DMA_Total'],
-                name='30-Day MA', line=dict(color='#f1c40f', width=3, dash='dash')
-            ))
-            fig_trend.update_layout(
-                title="Total Revenue Trend",
-                **DARK_TEMPLATE, height=350,
-                legend=dict(orientation='h', y=1.1),
-                margin=dict(l=10, r=10, t=50, b=10)
-            )
+            fig_trend.update_layout(title=dict(text="Total Revenue Trend", font=dict(size=18, color='white')), **DARK_TEMPLATE, height=350, hovermode="x unified", legend=dict(orientation='h', y=1.1))
             st.plotly_chart(fig_trend, use_container_width=True)
 
         with t_col2:
@@ -471,17 +359,11 @@ def main():
             dow_data  = df_filtered.groupby('DayOfWeek')[active_cols].sum().reindex(dow_order).reset_index()
             dow_melted= dow_data.melt(id_vars='DayOfWeek', var_name='Product', value_name='Sales')
             fig_dow = px.bar(
-                dow_melted, x='DayOfWeek', y='Sales', color='Product',
-                barmode='stack', title="Revenue by Day of Week",
-                color_discrete_map=COLOR_MAP
+                dow_melted, x='DayOfWeek', y='Sales', color='Product', barmode='stack', 
+                title="Revenue by Day of Week", color_discrete_map=COLOR_MAP
             )
-            fig_dow.update_layout(
-                **DARK_TEMPLATE, height=350,
-                xaxis=dict(showgrid=False),
-                yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'),
-                legend=dict(orientation='h', y=-0.25),
-                margin=dict(l=10, r=10, t=40, b=80)
-            )
+            fig_dow.update_traces(marker_line=dict(color='rgba(0,0,0,0.5)', width=1))
+            fig_dow.update_layout(**DARK_TEMPLATE, height=350, hovermode="x unified", legend=dict(orientation='h', y=-0.25))
             st.plotly_chart(fig_dow, use_container_width=True)
 
         st.markdown('<div class="section-header">Weekly Rolling Revenue per Product</div>', unsafe_allow_html=True)
@@ -489,18 +371,10 @@ def main():
         weekly['PeriodLabel'] = weekly['Year'].astype(str) + '-W' + weekly['Week'].astype(str).str.zfill(2)
         melted_w = weekly.melt(id_vars='PeriodLabel', value_vars=active_cols, var_name='Product', value_name='Sales')
         fig_weekly = px.line(
-            melted_w, x='PeriodLabel', y='Sales', color='Product',
-            title="Weekly Revenue Breakdown",
-            color_discrete_map=COLOR_MAP
+            melted_w, x='PeriodLabel', y='Sales', color='Product', title="Weekly Revenue Breakdown", color_discrete_map=COLOR_MAP
         )
-        fig_weekly.update_traces(line=dict(width=3))
-        fig_weekly.update_layout(
-            **DARK_TEMPLATE, height=380,
-            xaxis=dict(showgrid=False, tickangle=-45),
-            yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'),
-            legend=dict(orientation='h', y=-0.3),
-            margin=dict(l=10, r=10, t=40, b=100)
-        )
+        fig_weekly.update_traces(line=dict(width=3, shape='spline'), mode="lines+markers", marker=dict(size=6, line=dict(color='white', width=1)))
+        fig_weekly.update_layout(**DARK_TEMPLATE, height=450, hovermode="x unified", legend=dict(orientation='h', y=-0.3))
         st.plotly_chart(fig_weekly, use_container_width=True)
 
     # ==========================================
@@ -514,18 +388,13 @@ def main():
             monthly_by_product = df_filtered.groupby('Month')[active_cols].sum()
             monthly_winner      = monthly_by_product.idxmax(axis=1).reset_index()
             monthly_winner.columns = ['Month','Top Product']
-            monthly_winner['Revenue'] = [
-                monthly_by_product.loc[r['Month'], r['Top Product']]
-                for _, r in monthly_winner.iterrows()
-            ]
+            monthly_winner['Revenue'] = [monthly_by_product.loc[r['Month'], r['Top Product']] for _, r in monthly_winner.iterrows()]
             fig_winners = px.bar(
-                monthly_winner, x='Month', y='Revenue',
-                color='Top Product', text='Top Product',
-                title="Monthly Champion Product",
-                color_discrete_map=COLOR_MAP
+                monthly_winner, x='Month', y='Revenue', color='Top Product', text='Top Product',
+                title="Monthly Champion Product", color_discrete_map=COLOR_MAP
             )
-            fig_winners.update_traces(textposition='inside', textfont=dict(size=14, color='white', weight='bold'))
-            fig_winners.update_layout(**DARK_TEMPLATE, height=370, showlegend=False, margin=dict(l=10, r=10, t=40, b=60))
+            fig_winners.update_traces(textposition='inside', textfont=dict(size=14, color='white', weight='bold'), marker_line=dict(color='white', width=2))
+            fig_winners.update_layout(**DARK_TEMPLATE, height=370, showlegend=False)
             st.plotly_chart(fig_winners, use_container_width=True)
 
         with mi_col2:
@@ -533,42 +402,24 @@ def main():
             cumulative = (sorted_rev.cumsum() / sorted_rev.sum() * 100).reset_index()
             cumulative.columns = ['Product', 'Cumulative %']
             cumulative['Revenue'] = sorted_rev.values
-
             fig_pareto = make_subplots(specs=[[{"secondary_y": True}]])
-            fig_pareto.add_trace(
-                go.Bar(x=cumulative['Product'], y=cumulative['Revenue'],
-                       name='Revenue', marker_color=[COLOR_MAP.get(p,'#fff') for p in cumulative['Product']]),
-                secondary_y=False
-            )
-            fig_pareto.add_trace(
-                go.Scatter(x=cumulative['Product'], y=cumulative['Cumulative %'],
-                           name='Cumulative %', line=dict(color='#f1c40f', width=3)),
-                secondary_y=True
-            )
-            fig_pareto.update_layout(
-                title="Pareto Revenue Analysis",
-                **DARK_TEMPLATE, height=370,
-                legend=dict(orientation='h', y=1.12),
-                margin=dict(l=10, r=10, t=50, b=60)
-            )
+            fig_pareto.add_trace(go.Bar(
+                x=cumulative['Product'], y=cumulative['Revenue'], name='Revenue', 
+                marker_color=[COLOR_MAP.get(p,'#fff') for p in cumulative['Product']], marker_line=dict(color='white', width=1)), secondary_y=False)
+            fig_pareto.add_trace(go.Scatter(
+                x=cumulative['Product'], y=cumulative['Cumulative %'], name='Cumulative %', 
+                line=dict(color='#ffffff', width=3, shape='spline'), mode='lines+markers', marker=dict(size=8, color='#00FF66')), secondary_y=True)
+            fig_pareto.update_layout(title=dict(text="Pareto Revenue Analysis", font=dict(size=18, color='white')), **DARK_TEMPLATE, height=370, hovermode="x unified", legend=dict(orientation='h', y=1.12))
             st.plotly_chart(fig_pareto, use_container_width=True)
 
         st.markdown('<div class="section-header">Efficiency Matrix — Avg Daily vs Total Revenue</div>', unsafe_allow_html=True)
         fig_scatter = px.scatter(
-            stats_df,
-            x='Avg Daily', y='Total Revenue',
-            size='Market Share %', color='Product',
-            text='Product',
-            title="Product Efficiency Matrix (bubble = market share)",
-            color_discrete_map={r['Product']: r['Color'] for _, r in stats_df.iterrows()}
+            stats_df, x='Avg Daily', y='Total Revenue', size='Market Share %', color='Product', text='Product',
+            title="Product Efficiency Matrix (Bubble Size = Market Share)", color_discrete_map={r['Product']: r['Color'] for _, r in stats_df.iterrows()}
         )
-        fig_scatter.update_traces(textposition='top center', textfont=dict(size=13, weight='bold', color='white'))
-        fig_scatter.update_layout(
-            **DARK_TEMPLATE, height=420, showlegend=False,
-            xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'),
-            yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'),
-            margin=dict(l=10, r=10, t=40, b=10)
-        )
+        # Add white outlines to the bubbles so they pop out
+        fig_scatter.update_traces(textposition='top center', textfont=dict(size=13, weight='bold', color='white'), marker=dict(line=dict(width=2, color='white')))
+        fig_scatter.update_layout(**DARK_TEMPLATE, height=500, showlegend=False, xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'), yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'))
         st.plotly_chart(fig_scatter, use_container_width=True)
 
     # ==========================================
@@ -578,16 +429,12 @@ def main():
         st.markdown('<div class="section-header">AI Search & Analyze</div>', unsafe_allow_html=True)
         st.markdown("Ask me anything about your sales data. Try: *'Compare Lotto and Bingo'*, *'Overall product trends'*, *'Show monthly'*, *'Trend analysis'*, *'Risk'*, *'Best day'*")
 
-        user_query = st.text_input(
-            "Your question:",
-            placeholder="e.g., Overall product trends | Compare Lotto and Bingo | Trend analysis | Worst performers"
-        )
+        user_query = st.text_input("Your question:", placeholder="e.g. Overall product trends | Compare Lotto and Bingo | Trend analysis | Worst performers")
 
         if user_query:
             q = user_query.lower()
             st.write("### Insight Result")
 
-            # CASE 1: COMPARISON
             if "compare" in q or " vs " in q:
                 found_products = [p for p in active_cols if p.lower() in q]
                 if len(found_products) >= 2:
@@ -595,171 +442,63 @@ def main():
                     diff   = df_filtered[p1].sum() - df_filtered[p2].sum()
                     winner = p1 if diff > 0 else p2
                     st.info(f"Comparison: {p1} vs {p2}. **{winner}** leads by **${abs(diff):,.0f}**.")
-                    fig_c = px.line(df_filtered, x='Date', y=[p1, p2],
-                                    title=f"Timeline: {p1} vs {p2}",
-                                    color_discrete_map={p1: COLOR_MAP[p1], p2: COLOR_MAP[p2]})
-                    fig_c.update_traces(line=dict(width=3))
-                    fig_c.update_layout(**DARK_TEMPLATE)
+                    fig_c = px.line(df_filtered, x='Date', y=[p1, p2], title=f"Timeline: {p1} vs {p2}", color_discrete_map={p1: COLOR_MAP[p1], p2: COLOR_MAP[p2]})
+                    fig_c.update_traces(line=dict(width=4, shape='spline'), mode='lines+markers')
+                    fig_c.update_layout(**DARK_TEMPLATE, hovermode="x unified")
                     st.plotly_chart(fig_c, use_container_width=True)
-
-                    a1, a2 = st.columns(2)
-                    a1.metric(p1, f"${df_filtered[p1].sum():,.0f}", f"Avg/day ${df_filtered[p1].mean():,.0f}")
-                    a2.metric(p2, f"${df_filtered[p2].sum():,.0f}", f"Avg/day ${df_filtered[p2].mean():,.0f}")
                 else:
                     st.warning("Mention at least two valid product names (e.g., 'Compare Lotto and Bingo').")
 
-            # CASE 2: MONTHLY
-            elif "month" in q:
-                month_order = ['January','February','March','April','May','June',
-                               'July','August','September','October','November','December']
-                month_data = df_filtered.groupby('Month')[active_cols].sum().reset_index()
-                month_data['Total'] = month_data[active_cols].sum(axis=1)
-                month_data['SortKey'] = month_data['Month'].apply(
-                    lambda x: month_order.index(x) if x in month_order else 99
-                )
-                month_data = month_data.sort_values('SortKey').drop(columns='SortKey')
-                best_month = month_data.loc[month_data['Total'].idxmax(), 'Month']
-                st.success(f"Your strongest month overall is **{best_month}**.")
-                melted = month_data.drop(columns='Total').melt(id_vars='Month')
-                fig_m = px.bar(melted, x='Month', y='value', color='variable',
-                               barmode='group', title="Monthly Product Breakdown",
-                               color_discrete_map=COLOR_MAP)
-                fig_m.update_layout(**DARK_TEMPLATE)
-                st.plotly_chart(fig_m, use_container_width=True)
-
-            # CASE 3: OVERALL PRODUCT TRENDS (Moved up so "trend" doesn't catch it first)
             elif "overall" in q or "all product" in q or "product trend" in q or "every product" in q:
                 st.info("Showing individual trend lines for all active products over the selected period.")
-
                 df_cum = df_filtered[['Date'] + active_cols].copy()
-                for col in active_cols:
-                    df_cum[col] = df_cum[col].cumsum()
-
-                fig_cum = px.area(
-                    df_cum, x='Date', y=active_cols,
-                    title="Cumulative Revenue – All Products",
-                    color_discrete_map=COLOR_MAP
-                )
-                fig_cum.update_layout(**DARK_TEMPLATE)
+                for col in active_cols: df_cum[col] = df_cum[col].cumsum()
+                fig_cum = px.area(df_cum, x='Date', y=active_cols, title="Cumulative Revenue – All Products", color_discrete_map=COLOR_MAP)
+                fig_cum.update_traces(line=dict(width=2, shape='spline'))
+                fig_cum.update_layout(**DARK_TEMPLATE, hovermode="x unified")
                 st.plotly_chart(fig_cum, use_container_width=True)
 
                 df_ma = df_filtered[['Date'] + active_cols].copy()
-                for col in active_cols:
-                    df_ma[col] = df_ma[col].rolling(7, min_periods=1).mean()
-
-                fig_ma = px.line(
-                    df_ma, x='Date', y=active_cols,
-                    title="7-Day Moving Average – All Products",
-                    color_discrete_map=COLOR_MAP
-                )
-                fig_ma.update_traces(line=dict(width=2))
-                fig_ma.update_layout(**DARK_TEMPLATE)
+                for col in active_cols: df_ma[col] = df_ma[col].rolling(7, min_periods=1).mean()
+                fig_ma = px.line(df_ma, x='Date', y=active_cols, title="7-Day Moving Average – All Products", color_discrete_map=COLOR_MAP)
+                fig_ma.update_traces(line=dict(width=3, shape='spline'))
+                fig_ma.update_layout(**DARK_TEMPLATE, hovermode="x unified")
                 st.plotly_chart(fig_ma, use_container_width=True)
 
-                growth_data = []
-                for col in active_cols:
-                    series   = df_filtered[col]
-                    early    = series.head(7).mean()
-                    recent   = series.tail(7).mean()
-                    pct      = ((recent - early) / early * 100) if early else 0
-                    growth_data.append({'Product': col, 'Growth %': round(pct, 1)})
-
-                growth_df = pd.DataFrame(growth_data).sort_values('Growth %', ascending=False)
-
-                fig_growth = px.bar(
-                    growth_df, x='Product', y='Growth %',
-                    title="Period Growth % (First 7 Days vs Last 7 Days)",
-                    color='Growth %',
-                    color_continuous_scale=['#ff4b4b', '#ffdd57', '#00c896'],
-                    text='Growth %'
-                )
-                fig_growth.update_traces(texttemplate='%{text:+.1f}%', textposition='outside', textfont=dict(size=14, color='white', weight='bold'))
-                fig_growth.update_layout(**DARK_TEMPLATE)
-                st.plotly_chart(fig_growth, use_container_width=True)
-
-                st.markdown("#### Product-Level Summary")
-                # Wrap the 11 columns cleanly into rows of 4 instead of squishing them
-                num_cols = 4
-                cols_ui = st.columns(num_cols)
-                for i, col in enumerate(active_cols):
-                    series  = df_filtered[col]
-                    early   = series.head(7).mean()
-                    recent  = series.tail(7).mean()
-                    delta   = ((recent - early) / early * 100) if early else 0
-                    
-                    # Distribute across the 4 columns
-                    with cols_ui[i % num_cols]:
-                        st.metric(
-                            label=col,
-                            value=f"${series.sum():,.0f}",
-                            delta=f"{delta:+.1f}% trend"
-                        )
-
-            # CASE 4: TREND / MOVING AVERAGE
             elif "trend" in q or "moving average" in q:
                 df_filtered['7DMA'] = df_filtered['Total Sales'].rolling(7).mean()
                 st.info("Showing 7-day moving average to smooth out daily fluctuations.")
-                fig_t = px.scatter(df_filtered, x='Date', y='Total Sales',
-                                   title="Sales Trend & 7-Day Moving Average",
-                                   opacity=0.4)
-                fig_t.add_trace(go.Scatter(
-                    x=df_filtered['Date'], y=df_filtered['7DMA'],
-                    name='7-Day Avg', line=dict(color='#00e5ff', width=3)
-                ))
-                fig_t.update_layout(**DARK_TEMPLATE)
+                fig_t = px.scatter(df_filtered, x='Date', y='Total Sales', title="Sales Trend & 7-Day Moving Average", opacity=0.4)
+                fig_t.add_trace(go.Scatter(x=df_filtered['Date'], y=df_filtered['7DMA'], name='7-Day Avg', line=dict(color='#00FF66', width=4, shape='spline')))
+                fig_t.update_layout(**DARK_TEMPLATE, hovermode="x unified")
                 st.plotly_chart(fig_t, use_container_width=True)
 
-            # CASE 5: RISK / WORST
             elif "risk" in q or "worst" in q or "low" in q or "weak" in q:
                 bottom_3 = df_filtered[active_cols].sum().sort_values().head(3)
                 st.warning(f"Low performers: **{', '.join(bottom_3.index)}**")
-                fig_risk = px.pie(
-                    names=bottom_3.index, values=bottom_3.values, hole=0.4,
-                    title="Revenue Share of Lowest Performers",
-                    color_discrete_sequence=['#ef4444','#f87171','#fca5a5']
-                )
+                fig_risk = go.Figure(data=[go.Pie(labels=bottom_3.index, values=bottom_3.values, hole=0.4, marker=dict(colors=['#ef4444','#f87171','#fca5a5'], line=dict(color='white', width=2)), pull=[0.1, 0, 0])])
                 fig_risk.update_traces(textposition='inside', textinfo='percent+label', textfont=dict(size=14, color='white', weight='bold'))
-                fig_risk.update_layout(**DARK_TEMPLATE)
+                fig_risk.update_layout(title="Revenue Share of Lowest Performers", **DARK_TEMPLATE)
                 st.plotly_chart(fig_risk, use_container_width=True)
 
-            # CASE 6: BEST DAY
             elif "best day" in q or "top day" in q or "highest day" in q:
                 best_row = df_filtered.loc[df_filtered['Total Sales'].idxmax()]
                 st.success(f"Best single day: **{str(best_row['Date'].date())}** with **${best_row['Total Sales']:,.0f}** in total sales.")
                 best_detail = best_row[active_cols].sort_values(ascending=False).reset_index()
                 best_detail.columns = ['Product', 'Revenue']
-                fig_bd = px.bar(best_detail, x='Product', y='Revenue',
-                                title=f"Revenue Breakdown on {str(best_row['Date'].date())}",
-                                color='Product', color_discrete_map=COLOR_MAP)
-                fig_bd.update_traces(texttemplate='$%{y:,.0f}', textposition='outside', textfont=dict(size=13, weight='bold', color='white'))
-                fig_bd.update_layout(**DARK_TEMPLATE)
+                fig_bd = px.bar(best_detail, x='Product', y='Revenue', title=f"Revenue Breakdown on {str(best_row['Date'].date())}", color='Product', color_discrete_map=COLOR_MAP)
+                fig_bd.update_traces(marker_line=dict(color='white', width=1.5), texttemplate='$%{y:,.0f}', textposition='outside', textfont=dict(size=13, weight='bold', color='white'))
+                fig_bd.update_layout(**DARK_TEMPLATE, hovermode="x unified")
                 st.plotly_chart(fig_bd, use_container_width=True)
 
-            # CASE 7: SPECIFIC PRODUCT QUERY
-            elif any(p.lower() in q for p in active_cols):
-                found = [p for p in active_cols if p.lower() in q][0]
-                p_stats = stats_df[stats_df['Product'] == found].iloc[0]
-                st.info(f"Showing full analysis for **{found}**")
-                m1, m2, m3, m4 = st.columns(4)
-                m1.metric("Total Revenue",  f"${p_stats['Total Revenue']:,.0f}")
-                m2.metric("Avg Daily",      f"${p_stats['Avg Daily']:,.0f}")
-                m3.metric("Peak Day",       f"${p_stats['Peak Day']:,.0f}")
-                m4.metric("Market Share",   f"{p_stats['Market Share %']:.2f}%")
-                fig_sp = px.line(df_filtered, x='Date', y=found, title=f"{found} Daily Revenue",
-                                 color_discrete_sequence=[COLOR_MAP[found]])
-                fig_sp.update_traces(line=dict(width=3))
-                fig_sp.update_layout(**DARK_TEMPLATE)
-                st.plotly_chart(fig_sp, use_container_width=True)
-
             else:
-                st.write("I'm not sure how to answer that yet. Try: **'compare X and Y'**, **'overall product trends'**, **'monthly sales'**, **'trend'**, **'risk'**, **'best day'**, or a product name.")
+                st.write("I'm not sure how to answer that yet. Try: **'compare X and Y'**, **'overall product trends'**, **'monthly sales'**, **'trend'**, **'risk'**, **'best day'**.")
 
     # ==========================================
     # TAB 6 — RAW DATA
     # ==========================================
     with tab6:
         st.markdown('<div class="section-header">Raw Data Explorer</div>', unsafe_allow_html=True)
-
         search_term = st.text_input("Filter by date (YYYY-MM-DD) or any value:", placeholder="e.g. 2024-01")
         display_df  = df_filtered.copy()
         if search_term:
@@ -768,18 +507,9 @@ def main():
 
         st.caption(f"Showing {len(display_df):,} rows")
         st.dataframe(display_df, use_container_width=True)
-
         csv = display_df.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="Download Filtered Data as CSV",
-            data=csv,
-            file_name="sales_export.csv",
-            mime="text/csv"
-        )
+        st.download_button(label="Download Filtered Data as CSV", data=csv, file_name="sales_export.csv", mime="text/csv")
 
-# ==========================================
-# 4. EXECUTION
-# ==========================================
 if __name__ == '__main__':
     if runtime.exists():
         main()
