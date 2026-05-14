@@ -42,7 +42,7 @@ DARK_TEMPLATE = dict(
     legend=dict(
         font=dict(size=14, color='#ffffff')
     )
-
+)
 
 @st.cache_data
 def load_data():
