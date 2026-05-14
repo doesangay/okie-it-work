@@ -23,11 +23,13 @@ DARK_TEMPLATE = dict(
     paper_bgcolor='rgba(0,0,0,0)',
     plot_bgcolor='rgba(0,0,0,0)',
     font=dict(
-        color='#F8FAFC',          # Crisp, highly visible off-white (much better than harsh pure white)
-        size=14,                  # Slightly larger for better readability
-        family="Sora, sans-serif" # Modern, clean dashboard font
+        family="Sora, sans-serif",  # Modern, clean dashboard font
+        color="#F8FAFC",            # Crisp, bright off-white for maximum readability
+        size=14                     # Slightly larger text so words are clear
     )
-)
+
+
+
 
 @st.cache_data
 def load_data():
