@@ -210,9 +210,9 @@ def main():
     st.markdown("""
     <div style='padding: 10px 0 20px 0;'>
         <div style='font-size:28px; font-weight:700; color:#f1f5f9; letter-spacing:-0.5px;'>
-            AI Sales Intelligence Dashboard
+             Sales Dashboard
         </div>
-        <div style='font-size:13px; color:#64748b; margin-top:4px;'>
+        <div style='font-size:13px; color:black; margin-top:4px;'>
             Real-time product performance analysis across all game categories
         </div>
     </div>
