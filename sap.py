@@ -107,7 +107,7 @@ def get_product_stats(df, product_cols):
 # 3. MAIN DASHBOARD
 # ==========================================
 def main():
-    st.set_page_config(page_title="AI Sales Dashboard", layout="wide", page_icon="chart_with_upwards_trend")
+    st.set_page_config(page_title=" Sales Dashboard", layout="wide", page_icon="chart_with_upwards_trend")
 
     # ---- Custom CSS ----
     st.markdown("""
