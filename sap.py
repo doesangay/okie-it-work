@@ -118,6 +118,9 @@ def main():
 
     .metric-card {
         background: linear-gradient(135deg, #0d1b2a 0%, #1a2744 100%);
+        color: #f1f5f9; 
+        font-size: 20px; 
+        font-weight: 700;
         border: 1px solid rgba(255,255,255,0.08);
         border-radius: 14px;
         padding: 18px 22px;
@@ -269,7 +272,7 @@ def main():
         "Performance Overview",
         "Trends & Time Analysis",
         "Market Intelligence",
-        "AI Search & Analyze",
+        " Search & Analyze",
         "Raw Data"
     ])
 
