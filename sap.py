@@ -22,26 +22,7 @@ DARK_TEMPLATE = dict(
     template="plotly_dark",
     paper_bgcolor='rgba(0,0,0,0)',
     plot_bgcolor='rgba(0,0,0,0)',
-    font=dict(
-        family="Inter, Roboto, Arial, sans-serif", # Cleaner, modern font families
-        size=14,                                   # Slightly larger base size for readability
-        color='#ffffff'                            # Pure white for maximum contrast
-    ),
-    # Optional: Granular control to make titles stand out more than axis ticks
-    title=dict(
-        font=dict(size=20, color='#ffffff')
-    ),
-    xaxis=dict(
-        titlefont=dict(size=16, color='#ffffff'),
-        tickfont=dict(size=12, color='#e2e8f0')    # Keep ticks slightly muted so they don't distract
-    ),
-    yaxis=dict(
-        titlefont=dict(size=16, color='#ffffff'),
-        tickfont=dict(size=12, color='#e2e8f0')
-    ),
-    legend=dict(
-        font=dict(size=14, color='#ffffff')
-    )
+    font=dict(color='#fef08a', size=15, weight='bold') # Soft yellow
 )
 
 @st.cache_data
