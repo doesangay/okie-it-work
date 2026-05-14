@@ -22,7 +22,7 @@ DARK_TEMPLATE = dict(
     template="plotly_dark",
     paper_bgcolor='rgba(0,0,0,0)',
     plot_bgcolor='rgba(0,0,0,0)',
-    font=dict(color='#fef08a', size=15, weight='bold') # Soft yellow
+    font=dict(color='#000000')
 )
 
 @st.cache_data
