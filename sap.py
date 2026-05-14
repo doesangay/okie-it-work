@@ -147,7 +147,7 @@ def main():
     .rank-badge      { display:inline-block; background: rgba(255,255,255,0.08); border-radius:6px; padding: 2px 8px; font-size:10px; color:#94a3b8; margin-right:6px; }
 
     .section-header {
-        font-size: 20px; font-weight: 700; color: #f1f5f9;
+        font-size: 20px; font-weight: 700; color: black;
         margin: 24px 0 16px 0; padding-bottom: 8px;
         border-bottom: 1px solid rgba(255,255,255,0.08);
     }
