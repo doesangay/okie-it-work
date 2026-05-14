@@ -20,14 +20,12 @@ COLOR_MAP = {
 
 DARK_TEMPLATE = dict(
     template="plotly_dark",
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='rgba(0,0,0,0)',
-    font=dict(
-        family="Sora, sans-serif",  # Modern, clean dashboard font
-        color="#F8FAFC",            # Crisp, bright off-white for maximum readability
-        size=14                     # Slightly larger text so words are clear
-    )
+    paper_bgcolor='rgba(1,0,0,0)',
+    plot_bgcolor='rgba(1,0,0,0)',
+    font=dict(color='#000000', size=13) # ALL CHART TEXT IS BLACK
 
+    
+)
 
 
 
